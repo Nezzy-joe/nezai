@@ -18,7 +18,7 @@ export default function Navbar() {
                         About
                     </a>
 
-                    <a href="#projects"
+                    <a href="#work"
                     className="transition-colors hover:text-white"
                     
                     >

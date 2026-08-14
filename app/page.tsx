@@ -1,3 +1,6 @@
+
+
+import Projects from "./components/Projects";
 import About from "./components/About";
 
 export default function Home() {
@@ -36,6 +39,7 @@ export default function Home() {
       </section>
 
       <About />
+      <Projects />
     </main>
   );
 }
