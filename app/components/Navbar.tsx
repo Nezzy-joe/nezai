@@ -1,13 +1,14 @@
+import Link from "next/link";
 export default function Navbar() {
     return(
         <header className="border-b border-zinc-900">
-            <nav className="mx-auto flex max-w-6xl item-center justify-between px-6 py-5">
-                <a 
+            <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
                  
-                href="/" 
+                 
+              <Link  href="/" 
                 className="text-sm font-semibold tracking-tight text-white" >
                     NezAI
-                </a>
+                </Link>
 
                 <div className="flex items-center gap-6 text-sm text-zinc-400">
 
