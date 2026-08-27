@@ -9,6 +9,11 @@ type Message = {
   content: string;
 };
 
+function createConversationId(): string {
+  return crypto.randomUUID();
+}
+
+
 const starterQuestions = [
   "Who is Joseph Amos Ekpe?",
   "What are Joseph's three featured engineering projects?",
@@ -20,8 +25,9 @@ const starterQuestions = [
 
 export default function NezAIChat() {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
+const [messages, setMessages] = useState<Message[]>([]);
+const [loading, setLoading] = useState(false);
+const [conversationId] = useState(createConversationId);
 
   async function sendMessage(trimmedMessage: string) {
     if (!trimmedMessage || loading) {
@@ -48,9 +54,10 @@ export default function NezAIChat() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          message: trimmedMessage,
-        }),
+      body: JSON.stringify({
+  conversation_id: conversationId,
+  message: trimmedMessage,
+}),
       });
 
       if (!response.ok) {

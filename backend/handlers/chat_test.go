@@ -29,12 +29,13 @@ func TestChatHandlerSuccess(t *testing.T) {
 	handler := Chat(service)
 
 	const userMessage = "Tell me something about distributed systems."
+	const conversationID = "test-conversation"
 
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/api/v1/chat",
 		strings.NewReader(
-			`{"message":"Tell me something about distributed systems."}`,
+			`{"conversation_id":"test-conversation","message":"Tell me something about distributed systems."}`,
 		),
 	)
 
@@ -53,6 +54,16 @@ func TestChatHandlerSuccess(t *testing.T) {
 	responseBody := strings.TrimSpace(
 		recorder.Body.String(),
 	)
+
+	if !strings.Contains(
+		responseBody,
+		`"conversation_id":"`+conversationID+`"`,
+	) {
+		t.Fatalf(
+			"expected conversation ID, got %q",
+			responseBody,
+		)
+	}
 
 	if !strings.Contains(
 		responseBody,
@@ -111,7 +122,9 @@ func TestChatHandlerEmptyMessage(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/api/v1/chat",
-		strings.NewReader(`{"message":""}`),
+		strings.NewReader(
+			`{"conversation_id":"test-conversation","message":""}`,
+		),
 	)
 
 	recorder := httptest.NewRecorder()
@@ -153,9 +166,9 @@ func TestChatHandlerMethodNotAllowed(t *testing.T) {
 	}
 }
 
-func TestChatHandlerServiceError(t *testing.T) {
+func TestChatHandlerMissingConversationID(t *testing.T) {
 	service := services.NewChatService(
-		failingProvider{},
+		providers.FakeProvider{},
 	)
 
 	handler := Chat(service)
@@ -164,7 +177,38 @@ func TestChatHandlerServiceError(t *testing.T) {
 		http.MethodPost,
 		"/api/v1/chat",
 		strings.NewReader(
-			`{"message":"Tell me something about distributed systems."}`,
+			`{"message":"Hello NezAI"}`,
+		),
+	)
+
+	recorder := httptest.NewRecorder()
+
+	handler(recorder, req)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf(
+			"expected status %d, got %d",
+			http.StatusBadRequest,
+			recorder.Code,
+		)
+	}
+}
+
+func TestChatHandlerServiceError(t *testing.T) {
+	service := services.NewChatService(
+		failingProvider{},
+	)
+
+	handler := Chat(service)
+
+	const conversationID = "test-conversation"
+	const userMessage = "Tell me something about distributed systems."
+
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/api/v1/chat",
+		strings.NewReader(
+			`{"conversation_id":"test-conversation","message":"Tell me something about distributed systems."}`,
 		),
 	)
 
@@ -179,4 +223,7 @@ func TestChatHandlerServiceError(t *testing.T) {
 			recorder.Code,
 		)
 	}
+
+	_ = conversationID
+	_ = userMessage
 }
