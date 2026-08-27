@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import About from "./components/About";
 import NezAIChat from "./components/NezAIChat";
 import Projects from "./components/Projects";
@@ -22,19 +24,19 @@ export default function Home() {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
-          <a
-            href="#about"
+          <Link
+            href="/#about"
             className="rounded-full bg-white px-6 py-3 text-sm font-medium text-black transition hover:bg-zinc-200"
           >
             About me
-          </a>
+          </Link>
 
-          <a
-            href="#agent"
+          <Link
+            href="/#agent"
             className="rounded-full border border-zinc-700 px-6 py-3 text-sm font-medium text-white transition hover:bg-zinc-900"
           >
             Meet NezAI
-          </a>
+          </Link>
         </div>
       </section>
 
