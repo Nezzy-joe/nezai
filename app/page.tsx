@@ -1,7 +1,7 @@
-
-
-import Projects from "./components/Projects";
 import About from "./components/About";
+import NezAIChat from "./components/NezAIChat";
+import Projects from "./components/Projects";
+import Writing from "./components/Writing";
 
 export default function Home() {
   return (
@@ -40,6 +40,8 @@ export default function Home() {
 
       <About />
       <Projects />
+      <Writing />
+      <NezAIChat />
     </main>
   );
 }
