@@ -378,7 +378,7 @@ Current limitations include:
 
 - local Ollama inference
 - small 1B parameter model
-- no persistent conversation memory
+- conversation memory is in-memory and is cleared when the backend restarts
 - no public-chat authentication
 - no database-backed knowledge retrieval
 - no production deployment architecture
@@ -391,9 +391,10 @@ Building NezAI required working across the complete path:
 ```text
 Browser
 → Next.js
-→ HTTP API
-→ Go service
-→ provider interface
+→ Go HTTP API
+→ Chat Service
+→ conversation memory
+→ portfolio knowledge / AI provider
 → Ollama
 → language model
 → HTTP response
