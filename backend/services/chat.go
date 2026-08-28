@@ -8,8 +8,9 @@ import (
 )
 
 type ChatService struct {
-	provider providers.AIProvider
-	memory   *ConversationStore
+	provider              providers.AIProvider
+	memory                *ConversationStore
+	allowProviderFallback bool
 }
 
 func NewChatService(provider providers.AIProvider) *ChatService {
@@ -24,8 +25,21 @@ func NewChatServiceWithMemory(
 	memory *ConversationStore,
 ) *ChatService {
 	return &ChatService{
-		provider: provider,
-		memory:   memory,
+		provider:              provider,
+		memory:                memory,
+		allowProviderFallback: false,
+	}
+}
+
+func NewChatServiceWithMemoryAndFallback(
+	provider providers.AIProvider,
+	memory *ConversationStore,
+	allowProviderFallback bool,
+) *ChatService {
+	return &ChatService{
+		provider:              provider,
+		memory:                memory,
+		allowProviderFallback: allowProviderFallback,
 	}
 }
 
@@ -129,7 +143,11 @@ func (s *ChatService) ChatWithConversation(
 		message,
 	)
 	if err != nil {
-		return "", err
+		if !s.allowProviderFallback {
+			return "", err
+		}
+
+		response = "I can answer verified questions about Joseph Amos Ekpe, his engineering projects, and NezAI. General AI generation is not currently available in this production deployment."
 	}
 
 	if err := s.memory.Add(

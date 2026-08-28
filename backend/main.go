@@ -58,7 +58,11 @@ func main() {
 		)
 	}
 
-	chatService := services.NewChatService(aiProvider)
+	chatService := services.NewChatServiceWithMemoryAndFallback(
+		aiProvider,
+		services.NewConversationStore(10),
+		os.Getenv("ENVIRONMENT") == "production",
+	)
 
 	mux := http.NewServeMux()
 

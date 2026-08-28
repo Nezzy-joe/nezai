@@ -266,3 +266,50 @@ func TestBuildConversationPrompt(t *testing.T) {
 		)
 	}
 }
+func TestChatServiceProviderFallback(t *testing.T) {
+	service := NewChatServiceWithMemoryAndFallback(
+		failingProvider{},
+		NewConversationStore(10),
+		true,
+	)
+
+	response, err := service.ChatWithConversation(
+		context.Background(),
+		"fallback-test",
+		"What is a fun fact about the sun?",
+	)
+
+	if err != nil {
+		t.Fatalf(
+			"expected no error with provider fallback enabled, got %v",
+			err,
+		)
+	}
+
+	expected := "I can answer verified questions about Joseph Amos Ekpe, his engineering projects, and NezAI. General AI generation is not currently available in this production deployment."
+
+	if response != expected {
+		t.Fatalf(
+			"expected fallback response %q, got %q",
+			expected,
+			response,
+		)
+	}
+}
+func TestChatServiceProviderErrorWithoutFallback(t *testing.T) {
+	service := NewChatServiceWithMemoryAndFallback(
+		failingProvider{},
+		NewConversationStore(10),
+		false,
+	)
+
+	_, err := service.ChatWithConversation(
+		context.Background(),
+		"no-fallback-test",
+		"What is a fun fact about the sun?",
+	)
+
+	if err == nil {
+		t.Fatal("expected an error when provider fallback is disabled")
+	}
+}
