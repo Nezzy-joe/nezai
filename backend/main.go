@@ -29,7 +29,9 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 		Service: "nezai-backend",
 	}
 
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("health response error: %v", err)
+	}
 }
 
 func main() {
@@ -38,39 +40,53 @@ func main() {
 		log.Fatalf("configuration error: %v", err)
 	}
 
-	// Created the AI provider.
-	ollamaProvider := providers.NewOllamaProvider(
-		config.OllamaBaseURL,
-		config.OllamaModel,
-	)
-	// Injected the provider into the chat service.
-	chatService := services.NewChatService(ollamaProvider)
+	var aiProvider providers.AIProvider
 
-	// Created the HTTP router.
+	switch config.AIProvider {
+	case "ollama":
+		aiProvider = providers.NewOllamaProvider(
+			config.OllamaBaseURL,
+			config.OllamaModel,
+			config.OllamaAPIKey,
+		)
+
+	case "openrouter":
+		aiProvider = providers.NewOpenRouterProvider(
+			config.OpenRouterBaseURL,
+			config.OpenRouterModel,
+			config.OpenRouterAPIKey,
+		)
+	}
+
+	chatService := services.NewChatService(aiProvider)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", healthHandler)
 	mux.HandleFunc("/api/v1/chat", handlers.Chat(chatService))
 
-	// Created the HTTP server.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         "0.0.0.0:" + port,
 		Handler:      corsMiddleware(requestIDMiddleware(mux)),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 5 * time.Minute,
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Started the server in a separate goroutine.
 	go func() {
 		log.Printf("NezAI backend listening on %s", server.Addr)
 
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.ListenAndServe(); err != nil &&
+			!errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("server failed: %v", err)
 		}
 	}()
 
-	// Waited for an interrupt or termination signal.
 	stop := make(chan os.Signal, 1)
 
 	signal.Notify(
@@ -83,7 +99,6 @@ func main() {
 
 	log.Println("Shutting down NezAI backend...")
 
-	// Gave active requests time to finish.
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
 		10*time.Second,

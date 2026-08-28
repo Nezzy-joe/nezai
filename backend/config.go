@@ -7,36 +7,105 @@ import (
 )
 
 type Config struct {
+	AIProvider string
+
 	OllamaBaseURL string
 	OllamaModel   string
+	OllamaAPIKey  string
+
+	OpenRouterBaseURL string
+	OpenRouterModel   string
+	OpenRouterAPIKey  string
 }
 
 func loadConfig() (Config, error) {
-	baseURL := os.Getenv("OLLAMA_BASE_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:11434"
+	provider := os.Getenv("AI_PROVIDER")
+	if provider == "" {
+		provider = "ollama"
 	}
 
-	model := os.Getenv("OLLAMA_MODEL")
-	if model == "" {
-		model = "gemma3:1b"
+	switch provider {
+	case "ollama", "openrouter":
+	default:
+		return Config{}, fmt.Errorf(
+			"invalid AI_PROVIDER %q: must be ollama or openrouter",
+			provider,
+		)
 	}
 
-	parsedURL, err := url.Parse(baseURL)
+	ollamaBaseURL := os.Getenv("OLLAMA_BASE_URL")
+	if ollamaBaseURL == "" {
+		ollamaBaseURL = "http://localhost:11434"
+	}
+
+	ollamaModel := os.Getenv("OLLAMA_MODEL")
+	if ollamaModel == "" {
+		ollamaModel = "gemma3:1b"
+	}
+
+	ollamaAPIKey := os.Getenv("OLLAMA_API_KEY")
+
+	openRouterBaseURL := os.Getenv("OPENROUTER_BASE_URL")
+	if openRouterBaseURL == "" {
+		openRouterBaseURL = "https://openrouter.ai/api/v1"
+	}
+
+	openRouterModel := os.Getenv("OPENROUTER_MODEL")
+	if openRouterModel == "" {
+		openRouterModel = "openrouter/free"
+	}
+
+	openRouterAPIKey := os.Getenv("OPENROUTER_API_KEY")
+
+	ollamaURL, err := url.Parse(ollamaBaseURL)
 	if err != nil {
-		return Config{}, fmt.Errorf("invalid OLLAMA_BASE_URL: %w", err)
+		return Config{}, fmt.Errorf(
+			"invalid OLLAMA_BASE_URL: %w",
+			err,
+		)
 	}
 
-	if parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return Config{}, fmt.Errorf("invalid OLLAMA_BASE_URL: must include scheme and host")
+	if ollamaURL.Scheme == "" || ollamaURL.Host == "" {
+		return Config{}, fmt.Errorf(
+			"invalid OLLAMA_BASE_URL: must include scheme and host",
+		)
 	}
 
-	if model == "" {
-		return Config{}, fmt.Errorf("OLLAMA_MODEL cannot be empty")
+	openRouterURL, err := url.Parse(openRouterBaseURL)
+	if err != nil {
+		return Config{}, fmt.Errorf(
+			"invalid OPENROUTER_BASE_URL: %w",
+			err,
+		)
+	}
+
+	if openRouterURL.Scheme == "" || openRouterURL.Host == "" {
+		return Config{}, fmt.Errorf(
+			"invalid OPENROUTER_BASE_URL: must include scheme and host",
+		)
+	}
+
+	if ollamaModel == "" {
+		return Config{}, fmt.Errorf(
+			"OLLAMA_MODEL cannot be empty",
+		)
+	}
+
+	if openRouterModel == "" {
+		return Config{}, fmt.Errorf(
+			"OPENROUTER_MODEL cannot be empty",
+		)
 	}
 
 	return Config{
-		OllamaBaseURL: baseURL,
-		OllamaModel:   model,
+		AIProvider: provider,
+
+		OllamaBaseURL: ollamaBaseURL,
+		OllamaModel:   ollamaModel,
+		OllamaAPIKey:  ollamaAPIKey,
+
+		OpenRouterBaseURL: openRouterBaseURL,
+		OpenRouterModel:   openRouterModel,
+		OpenRouterAPIKey:  openRouterAPIKey,
 	}, nil
 }

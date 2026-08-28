@@ -102,7 +102,7 @@ func TestOllamaProviderGenerate(t *testing.T) {
 	provider := NewOllamaProvider(
 		server.URL,
 		"gemma3:1b",
-	)
+		"")
 
 	response, err := provider.Generate(
 		context.Background(),
@@ -145,7 +145,7 @@ func TestOllamaProviderGenerateServerError(t *testing.T) {
 	provider := NewOllamaProvider(
 		server.URL,
 		"gemma3:1b",
-	)
+		"")
 
 	_, err := provider.Generate(
 		context.Background(),
@@ -173,7 +173,7 @@ func TestOllamaProviderGenerateContextCancellation(t *testing.T) {
 	provider := NewOllamaProvider(
 		server.URL,
 		"gemma3:1b",
-	)
+		"")
 
 	ctx, cancel := context.WithCancel(
 		context.Background(),

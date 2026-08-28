@@ -10,35 +10,38 @@ import (
 	"time"
 )
 
-type OllamaProvider struct {
+type OpenRouterProvider struct {
 	BaseURL string
 	Model   string
 	APIKey  string
 	Client  *http.Client
 }
 
-type ollamaMessage struct {
+type openRouterMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-type ollamaRequest struct {
-	Model    string          `json:"model"`
-	Messages []ollamaMessage `json:"messages"`
-	Stream   bool            `json:"stream"`
-	Options  map[string]any  `json:"options,omitempty"`
+type openRouterRequest struct {
+	Model       string              `json:"model"`
+	Messages    []openRouterMessage `json:"messages"`
+	Temperature float64             `json:"temperature,omitempty"`
 }
 
-type ollamaResponse struct {
-	Message ollamaMessage `json:"message"`
+type openRouterChoice struct {
+	Message openRouterMessage `json:"message"`
 }
 
-func NewOllamaProvider(
+type openRouterResponse struct {
+	Choices []openRouterChoice `json:"choices"`
+}
+
+func NewOpenRouterProvider(
 	baseURL string,
 	model string,
 	apiKey string,
-) *OllamaProvider {
-	return &OllamaProvider{
+) *OpenRouterProvider {
+	return &OpenRouterProvider{
 		BaseURL: strings.TrimRight(baseURL, "/"),
 		Model:   model,
 		APIKey:  strings.TrimSpace(apiKey),
@@ -48,14 +51,14 @@ func NewOllamaProvider(
 	}
 }
 
-func (p *OllamaProvider) Generate(
+func (p *OpenRouterProvider) Generate(
 	ctx context.Context,
 	systemPrompt string,
 	message string,
 ) (string, error) {
-	requestBody := ollamaRequest{
+	requestBody := openRouterRequest{
 		Model: p.Model,
-		Messages: []ollamaMessage{
+		Messages: []openRouterMessage{
 			{
 				Role:    "system",
 				Content: systemPrompt,
@@ -65,63 +68,60 @@ func (p *OllamaProvider) Generate(
 				Content: message,
 			},
 		},
-		Stream: false,
-		Options: map[string]any{
-			"temperature": 0.2,
-		},
+		Temperature: 0.2,
 	}
 
 	body, err := json.Marshal(requestBody)
 	if err != nil {
-		return "", fmt.Errorf("marshal Ollama request: %w", err)
+		return "", fmt.Errorf("marshal OpenRouter request: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		p.BaseURL+"/api/chat",
+		p.BaseURL+"/chat/completions",
 		bytes.NewReader(body),
 	)
 	if err != nil {
-		return "", fmt.Errorf("create Ollama request: %w", err)
+		return "", fmt.Errorf("create OpenRouter request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-
-	if p.APIKey != "" {
-		req.Header.Set(
-			"Authorization",
-			"Bearer "+p.APIKey,
-		)
-	}
+	req.Header.Set("Authorization", "Bearer "+p.APIKey)
 
 	resp, err := p.Client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("call Ollama: %w", err)
+		return "", fmt.Errorf("call OpenRouter: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf(
-			"ollama returned status %d",
+			"openrouter returned status %d",
 			resp.StatusCode,
 		)
 	}
 
-	var result ollamaResponse
+	var result openRouterResponse
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", fmt.Errorf(
-			"decode Ollama response: %w",
+			"decode OpenRouter response: %w",
 			err,
 		)
 	}
 
-	response := strings.TrimSpace(result.Message.Content)
+	if len(result.Choices) == 0 {
+		return "", fmt.Errorf("openrouter returned no choices")
+	}
+
+	response := strings.TrimSpace(
+		result.Choices[0].Message.Content,
+	)
 
 	if response == "" {
-		return "", fmt.Errorf("ollama returned an empty response")
+		return "", fmt.Errorf("openrouter returned an empty response")
 	}
 
 	return response, nil
