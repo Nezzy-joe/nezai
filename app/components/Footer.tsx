@@ -51,15 +51,14 @@ export default function Footer() {
             >
               NezAI
             </Link>
-
-            <a
-              href="/joseph-amos-ekpe-cv.pdf"
-              download
-              className="inline-flex items-center gap-2 transition-colors hover:text-white"
-            >
-              <FaFilePdf className="text-xs" />
-              CV
-            </a>
+<a
+  href="/Joseph_Amos_Ekpe_IT_Support_CV_1.pdf"
+  download="Joseph_Amos_Ekpe_CV.pdf"
+  className="inline-flex items-center gap-2 transition-colors hover:text-white"
+>
+  <FaFilePdf className="text-xs" />
+  CV
+</a>
 
             <a
               href="https://github.com/Nezzy-joe"
