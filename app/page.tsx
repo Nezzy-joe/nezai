@@ -41,7 +41,7 @@ export default function Home() {
             </Link>
 
             <a
-              href="/joseph-amos-ekpe-cv.pdf"
+              href="/Joseph_Amos_Ekpe_IT_Support_CV_1.pdf"
               download
               className="rounded-full border border-zinc-900 px-6 py-3 text-sm font-medium text-zinc-400 transition hover:border-zinc-700 hover:text-white"
             >

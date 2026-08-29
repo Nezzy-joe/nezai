@@ -80,7 +80,7 @@ export default function About() {
   </Link>
 
               <a
-    href="/joseph-amos-ekpe-cv.pdf"
+    href="/Joseph_Amos_Ekpe_IT_Support_CV_1.pdf"
     download
     className="inline-flex items-center gap-2 rounded-full border border-zinc-700 px-5 py-3 text-sm font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-900"
   >
